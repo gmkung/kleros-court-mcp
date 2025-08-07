@@ -36,7 +36,7 @@ A Model Context Protocol (MCP) server that retrieves comprehensive Kleros court 
 5. **Click "Add"**
 6. **Confirm that you trust this connector**
 
-![Claude Desktop Connector Setup](https://i.imgur.com/screenshot.png)
+![Claude Desktop Connector Setup](/Screenshot%202025-08-07%20at%201.48.34 PM.png)
 
 The connector will now be available and you can use the `get_dispute_data` tool in your conversations!
 
