@@ -25,20 +25,25 @@ A Model Context Protocol (MCP) server that retrieves comprehensive Kleros court 
 
 ## Claude Desktop Integration
 
-### Simple Setup (Recommended)
+### Easy Setup (Recommended)
 
-1. **Open Claude Desktop**
-2. **Go to Settings → Connectors**
-3. **Click "Add custom connector"**
-4. **Enter the details:**
-   - **Name**: `Kleros Court`
-   - **URL**: `https://kleros-mcp-server-new.fly.dev/mcp`
-5. **Click "Add"**
-6. **Confirm that you trust this connector**
+1. **Open Claude Desktop Settings**
+   - Click on Settings in the sidebar
+
+2. **Go to Connectors**
+   - Navigate to Settings → Connectors
+
+3. **Add Custom Connector**
+   - Click "Add custom connector"
+   - Enter a name: `Kleros Court`
+   - Paste the URL: `https://kleros-mcp-server-new.fly.dev/mcp`
+   - Click "Add"
 
 ![Claude Desktop Connector Setup](/Screenshot%202025-08-07%20at%201.48.34 PM.png)
 
-The connector will now be available and you can use the `get_dispute_data` tool in your conversations!
+4. **Start Using**
+   - The Kleros Court tool will now be available in Claude Desktop
+   - Try: "Get dispute data for dispute ID 481 on Gnosis Chain"
 
 ### Alternative Configuration File Method
 
@@ -63,10 +68,29 @@ Retrieves comprehensive dispute data from Kleros including meta-evidence and evi
 - `disputeId` (string): The dispute ID to retrieve data for
 - `chainId` (number): The chain ID (1 for Ethereum, 100 for Gnosis)
 
-**Example Usage in Claude Desktop:**
-- "Get dispute data for dispute ID 481 on Gnosis Chain"
-- "Show me the evidence for dispute 123 on Ethereum"
-- "What's the meta-evidence for dispute 50 on chain 100?"
+**Example Usage:**
+- "Get dispute data for dispute ID 123 on Ethereum"
+- "Show me details for dispute 481 on Gnosis Chain"
+- "Retrieve evidence for dispute 50 on chain 100"
+
+**Sample Response:**
+```
+# Kleros Dispute Data
+
+**Dispute ID:** 481
+**Chain:** Gnosis Chain (100)
+
+## Meta-Evidence
+**Title:** Web3 Security Auditor Registry
+**Description:** A curated registry of verified security auditors...
+
+## Evidence Submissions (3)
+
+### Evidence 1
+**Title:** Challenge Justification
+**Description:** Pokémon is not a web3 auditor, reject the submission.
+**Type:** text/plain
+```
 
 ## Quick Start
 
@@ -143,7 +167,7 @@ Your MCP server will be available at: `https://kleros-mcp-server-new.fly.dev/mcp
 
 Set any required environment variables:
 ```bash
-fly secrets set ALLOWED_HOSTS=kleros-mcp-server-new.fly.dev
+fly secrets set ALLOWED_HOSTS=your-domain.com
 ```
 
 ## API Endpoints
@@ -214,8 +238,8 @@ curl -X POST http://localhost:8080/mcp \
     "params": {
       "name": "get_dispute_data",
       "arguments": {
-        "disputeId": "481",
-        "chainId": 100
+        "disputeId": "123",
+        "chainId": 1
       }
     },
     "id": 1
@@ -240,18 +264,19 @@ This server passes all MCP Inspector checks:
 - Input validation and sanitization
 - Graceful error handling without information leakage
 
-## Example Usage
+## Troubleshooting
 
-Once connected to Claude Desktop, you can ask:
+### Common Issues
 
-- **"Get dispute data for dispute 481 on Gnosis Chain"**
-- **"Show me evidence submissions for dispute 123 on Ethereum"**
-- **"What's the meta-evidence for dispute 50?"**
+1. **404 Subgraph Errors**: Check if subgraph URLs are up to date
+2. **IPFS Timeout**: Evidence content may be temporarily unavailable
+3. **Invalid Dispute ID**: Ensure the dispute exists on the specified chain
 
-The tool will return formatted dispute information including:
-- Meta-evidence (title, description, ruling options)
-- Evidence submissions (with IPFS content)
-- Error details for any failed retrievals
+### Getting Help
+
+- Check server health: `curl https://kleros-mcp-server-new.fly.dev/health`
+- View logs: `fly logs` (for deployed version)
+- Test locally: `npm run dev`
 
 ## License
 

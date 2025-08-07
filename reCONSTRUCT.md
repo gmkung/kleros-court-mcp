@@ -4,23 +4,17 @@
 
 A Model Context Protocol (MCP) server that retrieves comprehensive Kleros court dispute data including meta-evidence and evidence submissions from multiple blockchain networks.
 
-**🚀 Live Deployment:** `https://kleros-mcp-server-new.fly.dev/mcp`  
-**📁 GitHub Repository:** `https://github.com/gmkung/kleros-court-mcp`
-
 ## Core Architecture
 
 ### Supported Networks
 - **Ethereum Mainnet** (chainId: 1)
 - **Gnosis Chain** (chainId: 100)
 
-### Data Sources ⚠️ UPDATED URLs
+### Data Sources
 1. **Meta-evidence API**: `https://kleros-api.netlify.app/.netlify/functions/get-dispute-metaevidence`
 2. **Ethereum Subgraph**: `https://gateway.thegraph.com/api/d1d19cef4bc7647cc6cfad4ad2662628/subgraphs/id/BqbBhB4R5pNAtdYya2kcojMrQMp8nVHioUnP22qN8JoN`
 3. **Gnosis Subgraph**: `https://gateway.thegraph.com/api/d1d19cef4bc7647cc6cfad4ad2662628/subgraphs/id/FxhLntVBELrZ4t1c2HNNvLWEYfBjpB8iKZiEymuFSPSr`
 4. **IPFS Gateway**: `https://cdn.kleros.link`
-
-### ⚠️ CRITICAL: Subgraph URL Format Change
-The original URLs in this guide were outdated. The correct format uses `/subgraphs/id/` instead of the direct gateway URLs.
 
 ## Core Logic
 
@@ -74,7 +68,7 @@ async function getMetaEvidence(disputeId: string, chainId: number) {
 }
 ```
 
-### 3. Evidence Submissions from Subgraph ⚠️ UPDATED SCHEMA
+### 3. Evidence Submissions from Subgraph
 
 ```typescript
 async function getEvidenceSubmissions(disputeId: string, chainId: number) {
@@ -82,7 +76,6 @@ async function getEvidenceSubmissions(disputeId: string, chainId: number) {
     ? 'https://gateway.thegraph.com/api/d1d19cef4bc7647cc6cfad4ad2662628/subgraphs/id/BqbBhB4R5pNAtdYya2kcojMrQMp8nVHioUnP22qN8JoN'
     : 'https://gateway.thegraph.com/api/d1d19cef4bc7647cc6cfad4ad2662628/subgraphs/id/FxhLntVBELrZ4t1c2HNNvLWEYfBjpB8iKZiEymuFSPSr';
     
-  // ⚠️ CRITICAL: Updated query structure - the schema changed!
   const query = `
     query getDispute($id: String!) {
       dispute(id: $id) {
@@ -99,19 +92,35 @@ async function getEvidenceSubmissions(disputeId: string, chainId: number) {
   
   const response = await axios.post(subgraphUrl, {
     query,
-    variables: { id: disputeId }  // ⚠️ Variable name changed from disputeId to id
+    variables: { id: disputeId }
   });
   
   return response.data.data.dispute?.evidenceGroup?.evidence || [];
 }
 ```
 
-### 4. IPFS Content Retrieval ⚠️ UPDATED URI HANDLING
+### 4. IPFS Content Retrieval
 
 ```typescript
 async function getEvidenceContent(ipfsUri: string) {
-  // ⚠️ CRITICAL: Handle multiple URI formats
-  const httpUrl = convertIpfsUriToHttp(ipfsUri);
+  // Convert IPFS URI to HTTP URL - handle different formats
+  let httpUrl: string;
+  
+  if (ipfsUri.startsWith('ipfs://')) {
+    httpUrl = ipfsUri.replace('ipfs://', 'https://cdn.kleros.link/ipfs/');
+  } else if (ipfsUri.startsWith('/ipfs/')) {
+    // Already has /ipfs/ prefix, just prepend the gateway
+    httpUrl = `https://cdn.kleros.link${ipfsUri}`;
+  } else if (ipfsUri.startsWith('Qm') || ipfsUri.startsWith('bafy')) {
+    // Direct IPFS hash
+    httpUrl = `https://cdn.kleros.link/ipfs/${ipfsUri}`;
+  } else if (ipfsUri.startsWith('http')) {
+    // Already an HTTP URL
+    httpUrl = ipfsUri;
+  } else {
+    // Assume it's an IPFS hash and prepend the gateway
+    httpUrl = `https://cdn.kleros.link/ipfs/${ipfsUri}`;
+  }
   
   const response = await axios.get(httpUrl, {
     timeout: 10000,
@@ -127,28 +136,6 @@ async function getEvidenceContent(ipfsUri: string) {
     fileTypeExtension: response.data.fileTypeExtension,
     type: response.data.type
   };
-}
-
-function convertIpfsUriToHttp(ipfsUri: string): string {
-  // Handle different IPFS URI formats
-  if (ipfsUri.startsWith('ipfs://')) {
-    return ipfsUri.replace('ipfs://', 'https://cdn.kleros.link/ipfs/');
-  }
-  
-  // ⚠️ NEW: Handle URIs that already start with /ipfs/ (from subgraph)
-  if (ipfsUri.startsWith('/ipfs/')) {
-    return `https://cdn.kleros.link${ipfsUri}`;
-  }
-  
-  if (ipfsUri.startsWith('Qm') || ipfsUri.startsWith('bafy')) {
-    return `https://cdn.kleros.link/ipfs/${ipfsUri}`;
-  }
-  
-  if (ipfsUri.startsWith('http')) {
-    return ipfsUri;
-  }
-  
-  return `https://cdn.kleros.link/ipfs/${ipfsUri}`;
 }
 ```
 
@@ -178,24 +165,24 @@ function convertIpfsUriToHttp(ipfsUri: string): string {
 }
 ```
 
-### Server Transport Options ⚠️ RECOMMENDED: Modern Only
+### Server Transport Options
 
-1. **Stdio Transport** (Local Development)
+1. **Stdio Transport** (Local)
    ```typescript
    import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
    ```
 
-2. **~~SSE Transport~~ (DEPRECATED)** ❌ Do not use
-   ```typescript
-   // import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-   // ⚠️ SSE Transport is deprecated - use Streamable HTTP instead
-   ```
-
-3. **Streamable HTTP Transport** (✅ RECOMMENDED for Remote)
+2. **Streamable HTTP Transport** (Modern Remote - RECOMMENDED)
    ```typescript
    import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-   // This is the modern, recommended transport for remote deployments
    ```
+
+3. **SSE Transport** (Legacy Remote - DEPRECATED)
+   ```typescript
+   import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+   ```
+
+   **Note**: SSE transport is deprecated. Use Streamable HTTP for new implementations.
 
 ## Error Handling
 
@@ -248,6 +235,7 @@ curl -X POST http://localhost:3000/api/test \
 
 ```json
 {
+  "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.1",
     "axios": "^1.6.0",
@@ -265,55 +253,27 @@ curl -X POST http://localhost:3000/api/test \
 }
 ```
 
+**Important**: Set `"type": "module"` in package.json for ES module support.
+
 ## Key Features
 
 - ✅ **Multi-chain support** (Ethereum + Gnosis)
 - ✅ **Comprehensive error handling**
-- ✅ **IPFS content retrieval**
-- ✅ **Subgraph integration**
-- ✅ **Modern MCP transport** (Streamable HTTP)
-- ✅ **Claude Desktop integration** (Direct URL)
+- ✅ **IPFS content retrieval** (with proper URI format handling)
+- ✅ **Subgraph integration** (updated to new schema)
+- ✅ **Modern transport options** (Streamable HTTP recommended)
+- ✅ **ES Module support** (Node.js 18+)
 - ✅ **Fly.io deployment ready**
 
-## Critical Issues Resolved ⚠️
+## Deployment URL
 
-### 1. Subgraph URL Format Change
-**Problem:** Original URLs returned 404 errors  
-**Solution:** Updated to use `/subgraphs/id/` format in gateway URLs
-
-### 2. GraphQL Schema Changes
-**Problem:** Query used outdated field names (`evidenceSubmissions`, `uri`, `submitter`, `timestamp`)  
-**Solution:** Updated to new schema structure:
-- `dispute(id: $id) -> evidenceGroup -> evidence`
-- Field names: `URI`, `sender`, `creationTime`
-- Variable name: `disputeId` → `id`
-
-### 3. IPFS URI Format Handling
-**Problem:** Subgraph returns URIs with `/ipfs/` prefix, not `ipfs://` protocol  
-**Solution:** Added handling for multiple URI formats in conversion function
-
-### 4. ES Module Configuration
-**Problem:** ES import/export syntax errors  
-**Solution:** Added `"type": "module"` to package.json
-
-### 5. Error Message Serialization
-**Problem:** Error objects showing as `[object Object]`  
-**Solution:** Improved error message extraction from ApiError objects
-
-## Modern Implementation Notes
-
-1. **Use Streamable HTTP Transport** - SSE is deprecated
-2. **Handle URI Formats Properly** - The subgraph returns `/ipfs/` prefixed URIs
-3. **Update GraphQL Queries** - Schema has changed significantly
-4. **Use Latest MCP SDK** - v1.17.1+ for modern features
-5. **Enable ES Modules** - Required for latest MCP SDK
+**Live Server**: `https://kleros-mcp-server-new.fly.dev/mcp`
 
 ## Claude Desktop Integration
 
-**Direct URL Setup:**
+Simply add the URL `https://kleros-mcp-server-new.fly.dev/mcp` as a custom connector in Claude Desktop:
 1. Settings → Connectors → Add custom connector
 2. Name: `Kleros Court`
 3. URL: `https://kleros-mcp-server-new.fly.dev/mcp`
-4. No configuration file needed!
 
-This reconstruction guide contains all the essential logic and **critical fixes** needed to rebuild the Kleros Court MCP server from scratch. 
+This reconstruction guide contains all the essential logic needed to rebuild the Kleros Court MCP server from scratch. 
