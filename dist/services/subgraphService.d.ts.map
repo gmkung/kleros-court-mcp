@@ -1,0 +1,1 @@
+{"version":3,"file":"subgraphService.d.ts","sourceRoot":"","sources":["../../src/services/subgraphService.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,kBAAkB,EAAE,gBAAgB,EAA8B,MAAM,mBAAmB,CAAC;AAGrG,qBAAa,eAAe;IACpB,sBAAsB,CAAC,SAAS,EAAE,MAAM,EAAE,OAAO,EAAE,gBAAgB,GAAG,OAAO,CAAC,kBAAkB,EAAE,CAAC;CAiD1G"}

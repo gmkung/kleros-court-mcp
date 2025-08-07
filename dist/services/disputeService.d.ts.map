@@ -1,0 +1,1 @@
+{"version":3,"file":"disputeService.d.ts","sourceRoot":"","sources":["../../src/services/disputeService.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,WAAW,EAAE,YAAY,EAAuD,MAAM,mBAAmB,CAAC;AAMnH,qBAAa,cAAc;IACzB,OAAO,CAAC,mBAAmB,CAAsB;IACjD,OAAO,CAAC,eAAe,CAAkB;IACzC,OAAO,CAAC,WAAW,CAAc;;IAQ3B,cAAc,CAAC,KAAK,EAAE,YAAY,GAAG,OAAO,CAAC,WAAW,CAAC;IA6D/D,OAAO,CAAC,aAAa;CAStB"}

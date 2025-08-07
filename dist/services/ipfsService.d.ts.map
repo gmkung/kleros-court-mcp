@@ -1,0 +1,1 @@
+{"version":3,"file":"ipfsService.d.ts","sourceRoot":"","sources":["../../src/services/ipfsService.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,eAAe,EAAY,MAAM,mBAAmB,CAAC;AAG9D,qBAAa,WAAW;IAChB,kBAAkB,CAAC,OAAO,EAAE,MAAM,GAAG,OAAO,CAAC,eAAe,CAAC;IA2CnE,OAAO,CAAC,oBAAoB;CAwB7B"}
